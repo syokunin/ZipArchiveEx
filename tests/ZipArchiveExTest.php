@@ -152,7 +152,8 @@ class ZipArchiveExTest extends PHPUnit_Framework_TestCase
     {
         if (file_exists($this->output_dir)) {
             if ($this->isWindows()) {
-                exec("rmdir /s /q  {$this->output_dir}");
+                $output_dir = str_replace('/', '\\', $this->output_dir);
+                exec("rmdir /s /q {$output_dir}");
             } else {
                 exec("rm -rf {$this->output_dir}");
             }
