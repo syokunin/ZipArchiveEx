@@ -1,2 +1,2 @@
 # ZipArchiveEx
-Enhancements PHP ZipArchive
+PHP ZipArchive Enhancements

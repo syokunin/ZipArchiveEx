@@ -1,0 +1,23 @@
+{
+    "name": "syokunin/zip-archive-ex",
+    "description": "PHP ZipArchive Enhancement",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "syokunin",
+            "email": "tsubo@kwalk.jp"
+        }
+    ],
+    "keywards": ["zip", "archive"],
+    "autoload": {
+        "psr-4": {
+            "Syokunin\\ZipArchiveEx\\": "src"
+        }
+    },
+    "require": {
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.7"
+    }
+}
