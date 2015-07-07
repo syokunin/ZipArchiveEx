@@ -10,8 +10,6 @@ use ZipArchive;
  * Enhancements ZipArchive
  *   Keep Symlink
  *   Keep Permission
- *
- * @package Laravel\Installer\Console
  */
 class ZipArchiveEx extends ZipArchive
 {
