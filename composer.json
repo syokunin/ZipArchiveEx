@@ -6,7 +6,7 @@
     "authors": [
         {
             "name": "syokunin",
-            "email": "tsubo@kwalk.jp"
+            "email": "support@kwalk.jp"
         }
     ],
     "keywards": ["zip", "archive"],
@@ -15,7 +15,13 @@
             "Syokunin\\ZipArchiveEx\\": "src"
         }
     },
+    "autoload-dev": {
+        "classmap": [
+          "tests/TestCase.php"
+        ]
+    },
     "require": {
+        "symfony/process": "^2.7"
     },
     "require-dev": {
         "phpunit/phpunit": "^4.7"

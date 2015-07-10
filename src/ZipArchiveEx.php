@@ -3,6 +3,7 @@
 namespace Syokunin\ZipArchiveEx;
 
 use ZipArchive;
+use ErrorException;
 
 /**
  * Class ZipArchiveEx
@@ -13,11 +14,29 @@ use ZipArchive;
  */
 class ZipArchiveEx extends ZipArchive
 {
-    const S_IFLNK = 0120000;  // Symlink
+    const S_IFLNK = 0120000;        // Symlink
     const ALL_PERMIT = 07777;
     const SHORT_SIZE = 16;
 
-    protected $directory;   // Output Directory
+    /** @var  Symlinker */
+    protected $symlinker;
+
+    /** @var  string */
+    protected $directory;           // Output Directory
+
+    /** @var  array */
+    protected $delayed_symlinks;
+
+    public function __construct()
+    {
+        if ($this->isWindows()) {
+            $this->symlinker = new SymlinkerWindows();
+        } else {
+            $this->symlinker = new SymlinkerUnix();
+        }
+
+        $this->delayed_symlinks = [];
+    }
 
     /**
      * Extract one or more file from a zip archive into the given directory.
@@ -33,6 +52,7 @@ class ZipArchiveEx extends ZipArchive
             for ($idx = 0; $stat = $this->statIndex($idx); $idx++) {
                 $this->extractFileByName($stat['name']);
             }
+            $this->createDelayedSymlinks();
         } else {
             if (is_string($entries)) {
                 $this->extractFileByName($entries);
@@ -40,6 +60,7 @@ class ZipArchiveEx extends ZipArchive
                 foreach ($entries as $entry) {
                     $this->extractFileByName($entry);
                 }
+                $this->createDelayedSymlinks();
             }
         }
     }
@@ -51,18 +72,10 @@ class ZipArchiveEx extends ZipArchive
      */
     protected function extractFileByName($filename)
     {
-        $opsys = 0;
-        $attribute = 0;
-
-        $this->getExternalAttributesName($filename, $opsys, $attribute);
-        $st_mode = $this->getStMode($attribute);
+        $st_mode = $this->getStMode($filename);
 
         if ($this->isSymlink($st_mode)) {
-            $result = @symlink($this->getFromName($filename), $this->getOutputPath($filename));
-            if ($result == false) {
-                // for windows
-                $this->extractFile($filename, $this->getPermission($st_mode));
-            }
+            $this->delayed_symlinks[] = $filename;
         } else {
             $this->extractFile($filename, $this->getPermission($st_mode));
         }
@@ -78,7 +91,25 @@ class ZipArchiveEx extends ZipArchive
     {
         parent::extractTo($this->directory, $filename);
         if (file_exists($this->getOutputPath($filename))) {
-            chmod($this->getOutputPath($filename), $permission);
+            @chmod($this->getOutputPath($filename), $permission);
+        }
+    }
+
+    /**
+     * Create symlinks
+     *
+     * When the windows, in order to create a symlink,
+     * it is necessary that the target file exists.
+     *
+     */
+    protected function createDelayedSymlinks()
+    {
+        foreach ($this->delayed_symlinks as $filename) {
+            try {
+                $this->symlinker->symlink($this->getFromName($filename), $this->getOutputPath($filename));
+            } catch (ErrorException $e) {
+                fputs(STDERR, $e->getMessage());
+            }
         }
     }
 
@@ -110,8 +141,13 @@ class ZipArchiveEx extends ZipArchive
      * @param $attribute
      * @return int
      */
-    protected function getStMode($attribute)
+    protected function getStMode($filename)
     {
+        $opsys = 0;
+        $attribute = 0;
+
+        $this->getExternalAttributesName($filename, $opsys, $attribute);
+
         return ($attribute >> ZipArchiveEx::SHORT_SIZE);
     }
 
@@ -124,5 +160,15 @@ class ZipArchiveEx extends ZipArchive
     protected function getOutputPath($filename)
     {
         return $this->directory.'/'.$filename;
+    }
+
+    /**
+     * Return whether environment is windows
+     *
+     * @return bool
+     */
+    protected function isWindows()
+    {
+        return substr(PHP_OS, 0, 3) === 'WIN';
     }
 }

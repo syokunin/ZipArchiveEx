@@ -1,0 +1,4 @@
+#!/usr/bin/env php
+<?php
+
+echo "This is php command!\n";
