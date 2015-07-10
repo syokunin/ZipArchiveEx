@@ -15,7 +15,10 @@ class SymlinkerWindows extends  Symlinker
             throw new ErrorException(sprintf("Link target doesn't exist.: %s\n", $absolute_target));
         }
 
-        $caller = $this->getCaller($absolute_target);
+        $caller = null;
+        if (is_readable($absolute_target) && (! is_dir($absolute_target))) {
+            $caller = $this->getCaller($absolute_target);
+        }
         if (is_null($caller)) {
             if (! @symlink($target, $link)) {
                 $error = error_get_last();

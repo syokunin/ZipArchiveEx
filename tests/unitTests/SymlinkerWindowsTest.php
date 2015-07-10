@@ -45,7 +45,7 @@ class SymlinkerWindowsTest extends TestCase
             try {
                 $this->symlinker->symlink('../datas/targets/target.txt', $this->outputFilePath('target.txt'));
             } catch (ErrorException $e) {
-                $this->assertRegExp('/symlink(): Cannot create symlink/', $e->getMessage());
+                $this->assertRegExp('/symlink\(\): Could not fetch file/', $e->getMessage());
             }
         }
     }
@@ -122,37 +122,42 @@ class SymlinkerWindowsTest extends TestCase
 
     public function testGenerateWindowsProxyCode()
     {
-        $bcl1 = Closure::bind(function ($target, $caller) {
-            return $this->generateWindowsProxyCode($target, $caller);
-        }, $this->symlinker, $this->symlinker);
+        if ($this->isWindows()) {
+            $bcl1 = Closure::bind(function ($target, $caller) {
+                return $this->generateWindowsProxyCode($target, $caller);
+            }, $this->symlinker, $this->symlinker);
 
-        $target = "../target";
+            $target = "../target";
 
-        $this->assertEquals(
-            "@ECHO OFF\r\n" .
-              "SET BIN_TARGET=%~dp0/'" . $target . "'\r\n" .
-              "php \"%BIN_TARGET%\" %*\r\n",
-            $bcl1('../target', 'php')
-        );
+            $this->assertEquals(
+                "@ECHO OFF\r\n" .
+                  "SET BIN_TARGET=%~dp0/" . $target . "\r\n" .
+                  "php \"%BIN_TARGET%\" %*\r\n",
+                $bcl1('../target', 'php')
+            );
+        }
     }
 
     public function testGenerateUnixyProxyCode()
     {
-        $bcl1 = Closure::bind(function ($target) {
-            return $this->generateUnixyProxyCode($target);
-        }, $this->symlinker, $this->symlinker);
+        if ($this->isWindows()) {
+            $bcl1 = Closure::bind(function ($target) {
+                return $this->generateUnixyProxyCode($target);
+            }, $this->symlinker, $this->symlinker);
 
-        $target = "../target";
+            $target = "../target";
 
-        $this->assertEquals(
-            "#!/usr/bin/env sh\n" .
-              'SRC_DIR="`pwd`"' . "\n" .
-              'cd "`dirname "$0"`"' . "\n" .
-              "cd '" . dirname($target) . "'\n" .
-              'BIN_TARGET="`pwd`/' . basename($target) . "\"\n" .
-              'cd "$SRC_DIR"' . "\n" .
-              '"$BIN_TARGET" "$@"' . "\n",
-            $bcl1($target)
-        );
+            $this->assertEquals(
+                "#!/usr/bin/env sh\n" .
+                  'SRC_DIR="`pwd`"' . "\n" .
+                  'cd "`dirname "$0"`"' . "\n" .
+                  'cd "' . dirname($target) . "\"\n" .
+                  'BIN_TARGET="`pwd`/' . basename($target) . "\"\n" .
+                  'cd "$SRC_DIR"' . "\n" .
+                  '"$BIN_TARGET" "$@"' . "\n",
+                $bcl1($target)
+            );
+        }
     }
 }
+

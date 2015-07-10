@@ -34,19 +34,38 @@ class ZipArchiveExTest extends TestCase
     {
         $this->archive->extractTo($this->output_dir);
 
-        $this->assertFileExistsArray([
-            'a_command1.sh',
-            'a_doc1.txt',
-            'command1.sh',
-            'doc1.txt',
-            'links/command1.sh',
-            'links/command2.sh',
-            'links/doc1.txt',
-            'links/doc2.txt',
-            'links/z_files',
-            'z_files/command2.sh',
-            'z_files/doc2.txt',
-        ]);
+        if ($this->isWindows()) {
+          $this->assertFileExistsArray([
+              'a_command1.sh',
+              'command1.sh',
+              'doc1.txt',
+              'links/command1.sh',
+              'links/command2.sh',
+              'z_files/command2.sh',
+              'z_files/doc2.txt',
+          ]);
+
+          $this->assertFileNotExistsArray([
+              'a_doc1.txt',
+              'links/doc1.txt',
+              'links/doc2.txt',
+              'links/z_files',
+          ]);
+        } else {
+          $this->assertFileExistsArray([
+              'a_command1.sh',
+              'a_doc1.txt',
+              'command1.sh',
+              'doc1.txt',
+              'links/command1.sh',
+              'links/command2.sh',
+              'links/doc1.txt',
+              'links/doc2.txt',
+              'links/z_files',
+              'z_files/command2.sh',
+              'z_files/doc2.txt',
+          ]);
+        }
     }
 
     public function testExtractTo_should_extract_one_file()
