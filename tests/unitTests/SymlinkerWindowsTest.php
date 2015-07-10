@@ -69,8 +69,8 @@ class SymlinkerWindowsTest extends TestCase
             return $this->getAbsolutePath($target, $link);
         }, $this->symlinker, $this->symlinker);
 
-        $this->assertEquals('/foo/bar', $bcl1('/foo/bar'));
-        $this->assertEquals('/foo/bar', $bcl2('/foo/bar', 'baz'));
+        $this->assertEquals('C:\foo\bar', $bcl1('C:\foo\bar'));
+        $this->assertEquals('D:\foo\bar', $bcl2('D:\foo\bar', 'baz'));
     }
 
     public function testGetAbsolutePath_should_return_relativePath()
@@ -85,7 +85,7 @@ class SymlinkerWindowsTest extends TestCase
 
         $this->assertEquals(getcwd().'/../foo/bar', $bcl1('../foo/bar'));
         $this->assertEquals(getcwd().'/../tmp/../foo/bar', $bcl2('../foo/bar', '../tmp'));
-        $this->assertEquals('/tmp/../foo/bar', $bcl2('../foo/bar', '/tmp'));
+        $this->assertEquals('E:\baz/../foo/bar', $bcl2('../foo/bar', 'E:\baz'));
     }
 
     public function testGetCaller_should_return_caller()

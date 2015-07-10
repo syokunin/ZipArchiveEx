@@ -32,7 +32,7 @@ class SymlinkerWindows extends  Symlinker
 
     protected function getAbsolutePath($path, $cwd = null)
     {
-        if ($path[0] === '/') {
+        if ($path[0] === '/' || preg_match('/^[a-zA-Z]:(\\\|\/)/', $path)) {
             return $path;
         }
 
